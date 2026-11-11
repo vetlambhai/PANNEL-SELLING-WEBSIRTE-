@@ -1,0 +1,70 @@
+# ============================================================
+#  SG PANEL — robots.txt
+#  Domain: keysmaster.shop
+# ============================================================
+
+# Default rule: allow everything, then block sensitive/private paths
+User-agent: *
+Allow: /
+Allow: /keys
+Allow: /store
+Allow: /login
+Allow: /register
+Allow: /$
+
+# ---- Block private / authenticated / admin areas ----
+Disallow: /admin
+Disallow: /admin.php
+Disallow: /dashboard
+Disallow: /dashboard.php
+Disallow: /generate
+Disallow: /generate.php
+Disallow: /history
+Disallow: /history.php
+Disallow: /approvals
+Disallow: /approvals.php
+Disallow: /keys-available
+Disallow: /keys-available.php
+Disallow: /balance-add
+Disallow: /balance-add.php
+Disallow: /docs
+Disallow: /docs.php
+Disallow: /downloads
+Disallow: /downloads.php
+Disallow: /download_docs
+Disallow: /download_docs.php
+Disallow: /ajax_search
+Disallow: /ajax_search.php
+Disallow: /api
+Disallow: /api.php
+Disallow: /google-login
+Disallow: /google-login.php
+Disallow: /google-callback
+Disallow: /google-callback.php
+Disallow: /wallet
+Disallow: /wallet.php
+Disallow: /wallet-recharge
+Disallow: /wallet-recharge.php
+Disallow: /my-keys
+Disallow: /my-keys.php
+Disallow: /orders
+Disallow: /orders.php
+Disallow: /profile
+Disallow: /profile.php
+Disallow: /reseller-api
+Disallow: /reseller-api.php
+Disallow: /reseller_api
+Disallow: /reseller_api.php
+Disallow: /logout
+Disallow: /config/
+Disallow: /includes/
+Disallow: /uploads/
+Disallow: /css/
+Disallow: /js/
+Disallow: /assets/
+Disallow: /*.json$
+Disallow: /*.sql$
+Disallow: /*.log$
+
+# ---- Sitemap location ----
+Sitemap: https://keysmaster.shop/sitemap.xml

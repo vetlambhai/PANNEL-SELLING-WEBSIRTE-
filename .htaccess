@@ -1,0 +1,104 @@
+# ============================================================
+#  SG PANEL — .htaccess (SEO-optimized)
+#  Domain: keysmaster.shop
+# ============================================================
+
+# Disable directory browsing/indexing
+Options -Indexes
+
+# Default landing page = keys.php (Free Fire Key Store is the homepage)
+DirectoryIndex keys.php index.php index.html
+
+# Redirect 403 (Forbidden) and 404 (Not Found) to custom 404 page
+ErrorDocument 403 /404.php
+ErrorDocument 404 /404.php
+
+# Enable URL rewriting
+RewriteEngine On
+
+# ============================================================
+#  SSL / HTTPS ENFORCEMENT  (fixes "Connection is not fully secure")
+# ============================================================
+
+# A. Force HTTPS — redirect every http:// request to https:// (301 permanent).
+#    Works behind Cloudflare / LiteSpeed / nginx proxies that send
+#    X-Forwarded-Proto. The first RewriteCond handles standard Apache;
+#    the second handles reverse-proxy environments.
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,QSA]
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{HTTP:X-Forwarded-Proto} .
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,QSA]
+
+# B. Send HSTS header — tells browsers to ONLY use HTTPS for this site for
+#    the next year (incl. subdomains) and to allow preload-list submission.
+#    Only send over HTTPS so we don't pin a misconfigured plain-HTTP response.
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" env=HTTPS
+    # Defense-in-depth: ask the browser to auto-upgrade any remaining
+    # http:// subresource (img/script/style/iframe/etc.) to https://.
+    Header always set Content-Security-Policy "upgrade-insecure-requests" env=HTTPS
+</IfModule>
+
+# Root URL (/) -> redirect to the public key store (keys.php / /keys)
+# When user opens keysmaster.shop, keys.php (Free Fire Key Store) loads directly.
+RewriteRule ^$ /keys [R=301,L]
+
+# 1. Redirect /page.php to /page (External Redirect, 301) — root level only
+#    Keeps clean canonical URLs for SEO (no .php in search results)
+#
+#    CRITICAL: Exclude webhook + API endpoints from this redirect!
+#    The payment gateway sends a POST to /payment-webhook.php with a JSON
+#    body. A 301 redirect strips the POST body (POST→GET), so the webhook
+#    payload is LOST and the wallet is never credited. The api/ directory
+#    endpoints (check-payment.php etc.) are called via AJAX POST and must
+#    also be excluded. We skip the redirect for:
+#      - POST requests (webhooks & API calls are always POST)
+#      - The /api/ path prefix (all AJAX endpoints live there)
+RewriteCond %{REQUEST_METHOD} !^(POST)$ [NC]
+RewriteCond %{REQUEST_URI} !^/api/ [NC]
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/([^.]+)\.php [NC]
+RewriteRule ^ /%1 [R=301,L,QSA]
+
+# 2. Map clean URL /page to /page.php at root if file exists
+#    Also exclude the /api/ directory (its endpoints use .php directly).
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/api/ [NC]
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^.]+)$ $1.php [NC,L,QSA]
+
+# 3. /store alias -> /keys (Free Fire Key Store)
+RewriteRule ^store/?$ /keys [R=301,L]
+
+# 4. Ensure sitemap.xml and robots.txt are served with correct content type
+<FilesMatch "^(sitemap\.xml)$">
+    Header set Content-Type "application/xml; charset=utf-8"
+</FilesMatch>
+<FilesMatch "^(robots\.txt)$">
+    Header set Content-Type "text/plain; charset=utf-8"
+</FilesMatch>
+
+# 5. Security: block access to sensitive config files
+<FilesMatch "\.(json|sql|log|md)$">
+    Require all denied
+</FilesMatch>
+
+# 6. Enable charset for HTML
+AddDefaultCharset UTF-8
+
+# 7. Basic caching for static assets (performance / Core Web Vitals)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType image/x-icon "access plus 1 year"
+</IfModule>
+
+# 8. Gzip compression (Core Web Vitals)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json image/svg+xml
+</IfModule>
